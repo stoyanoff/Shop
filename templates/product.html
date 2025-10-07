@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ product.name }}</h2>
+<p>{{ product.description }}</p>
+<p><b>Цена:</b> {{ product.price }} лв.</p>
+<p><b>Наличност:</b> {{ product.stock }}</p>
+<a href="{{ url_for('add_to_cart', product_id=product.id) }}">🛒 Добави в количка</a><br>
+<a href="{{ url_for('index') }}">⬅ Обратно в каталога</a>
+{% endblock %}

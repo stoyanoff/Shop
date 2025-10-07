@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Вход</h2>
+<form method="post">
+  <label>Потребител:</label><br>
+  <input type="text" name="username" required><br><br>
+  <label>Парола:</label><br>
+  <input type="password" name="password" required><br><br>
+  <button type="submit">Влез</button>
+</form>
+{% endblock %}

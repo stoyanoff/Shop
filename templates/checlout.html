@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Поръчката е приета!</h2>
+<p>Номер на поръчка: {{ order_id }}</p>
+<a href="{{ url_for('index') }}">⬅ Обратно в магазина</a>
+{% endblock %}

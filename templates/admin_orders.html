@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Админ – поръчки</h2>
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Дата</th>
+    <th>Статус</th>
+    <th>Потребител</th>
+    <th></th>
+  </tr>
+  {% for o in orders %}
+  <tr>
+    <td>{{ o.id }}</td>
+    <td>{{ o.created_at }}</td>
+    <td>{{ o.status }}</td>
+    <td>{{ o.username or 'Гост' }}</td>
+    <td><a href="{{ url_for('admin_order_detail', order_id=o.id) }}">👁️ Детайли</a></td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Детайли за поръчка #{{ order_id }}</h2>
+<table>
+  <tr>
+    <th>Продукт</th>
+    <th>Количество</th>
+    <th>Цена</th>
+    <th>Общо</th>
+  </tr>
+  {% for i in items %}
+  <tr>
+    <td>{{ i.name }}</td>
+    <td>{{ i.quantity }}</td>
+    <td>{{ i.price }} лв.</td>
+    <td>{{ i.quantity * i.price }} лв.</td>
+  </tr>
+  {% endfor %}
+</table>
+<a href="{{ url_for('admin_orders') }}">⬅ Обратно към поръчките</a>
+{% endblock %}

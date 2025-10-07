@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Количка</h2>
+{% if items %}
+<table>
+  <tr>
+    <th>Продукт</th>
+    <th>Цена</th>
+    <th>Количество</th>
+    <th>Общо</th>
+  </tr>
+  {% for item in items %}
+  <tr>
+    <td>{{ item.name }}</td>
+    <td>{{ item.price }} лв.</td>
+    <td>{{ item.quantity }}</td>
+    <td>{{ item.subtotal }} лв.</td>
+  </tr>
+  {% endfor %}
+</table>
+<p><b>Крайна сума: {{ total }} лв.</b></p>
+<a href="{{ url_for('checkout') }}">✅ Завърши поръчката</a>
+{% else %}
+<p>Количката е празна.</p>
+{% endif %}
+{% endblock %}

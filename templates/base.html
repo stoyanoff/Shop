@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="bg">
+
+<head>
+  <meta charset="utf-8">
+  <title>Агроаптека</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <header>
+    <h1><a href="/">Агроаптека Онлайн</a></h1>
+    <nav>
+      {% if session.username %}
+      Здравей, {{ session.username }} | <a href="{{ url_for('cart') }}">Количка</a> | <a
+        href="{{ url_for('logout') }}">Изход</a>
+      {% else %}
+      <a href="{{ url_for('login') }}">Вход</a> | <a href="{{ url_for('register') }}">Регистрация</a>
+      {% endif %}
+    </nav>
+    <hr>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer>
+    <hr>
+    <p>© 2025 Агроаптека</p>
+  </footer>
+</body>
+
+</html>
