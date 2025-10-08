@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="alert alert-success" role="alert">
+      <h2>✅ Поръчката е приета!</h2>
+      <p class="mb-0">Номер на поръчка: <strong>{{ order_id }}</strong></p>
+    </div>
+    <div class="text-center">
+      <a href="{{ url_for('index') }}" class="btn btn-primary">⬅ Обратно в магазина</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

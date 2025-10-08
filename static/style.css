@@ -1,18 +1,39 @@
 body {
   font-family: Arial, sans-serif;
-  margin: 20px;
+  background-color: #f8f9fa;
 }
 
-h1 a {
-  text-decoration: none;
-  color: darkgreen;
+.navbar-brand {
+  font-weight: bold;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
+.card {
+  transition: transform 0.2s;
 }
 
-li {
-  margin: 5px 0;
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.table-success th {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.alert-info {
+  border-color: #17a2b8;
+}
+
+.alert-success {
+  border-color: #28a745;
 }
