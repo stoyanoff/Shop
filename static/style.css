@@ -37,3 +37,21 @@ body {
 .alert-success {
   border-color: #28a745;
 }
+
+.responsive-input {
+  width: 100%;
+}
+
+.responsive-select {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .responsive-input {
+    width: 240px;
+  }
+
+  .responsive-select {
+    width: 120px;
+  }
+}
