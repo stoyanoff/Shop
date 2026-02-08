@@ -1,7 +1,7 @@
 DB_CONFIG = {
-    "host": "192.168.1.133",
+    "host": "192.168.1.112",
     "user": "shop",
-    "password": "882868648",
+    "password": "1234",
     "database": "shop"
 }
 

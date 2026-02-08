@@ -169,6 +169,39 @@ def logout():
     flash("You have been logged out.")
     return redirect(url_for("index"))
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+    if request.method == "POST":
+        name = request.form["name"]
+        email = request.form["email"]
+        phone = request.form.get("phone", "")
+        message = request.form["message"]
+
+        flash("Благодарим ви за съобщението! Ще се свържем с вас скоро.")
+        return redirect(url_for("contact"))
+
+    return render_template("contact.html")
+
+@app.route("/online_order", methods=["GET", "POST"])
+@login_required
+def online_order():
+    if request.method == "POST":
+        delivery_date = request.form["delivery_date"]
+        delivery_time = request.form["delivery_time"]
+        delivery_address = request.form["delivery_address"]
+        customer_name = request.form["customer_name"]
+        customer_phone = request.form["customer_phone"]
+        notes = request.form.get("notes", "")
+
+        flash(f"Вашата поръчка е приета! Доставка на {delivery_date} в {delivery_time} часа.")
+        return redirect(url_for("index"))
+
+    return render_template("online_order.html")
+
 @app.route("/admin/products/add", methods=["GET", "POST"], endpoint='admin_add_product')
 @admin_required
 def admin_add_product():

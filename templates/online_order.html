@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h1 class="mb-4">Онлайн поръчка</h1>
+
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Заявка за доставка</h5>
+          <p class="card-text text-muted">
+            Моля, попълнете формата по-долу и ние ще се свържем с вас за потвърждение на поръчката.
+          </p>
+
+          <form method="POST">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="customer_name" class="form-label">Име и фамилия <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+              </div>
+              <div class="col-md-6">
+                <label for="customer_phone" class="form-label">Телефон <span class="text-danger">*</span></label>
+                <input type="tel" class="form-control" id="customer_phone" name="customer_phone"
+                  placeholder="+359 888 123 456" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="delivery_address" class="form-label">Адрес на доставка <span
+                  class="text-danger">*</span></label>
+              <textarea class="form-control" id="delivery_address" name="delivery_address" rows="3"
+                placeholder="ул. Примерна 123, гр. София" required></textarea>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="delivery_date" class="form-label">Дата на доставка <span
+                    class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="delivery_date" name="delivery_date" min="{{ today }}"
+                  required>
+              </div>
+              <div class="col-md-6">
+                <label for="delivery_time" class="form-label">Час на доставка <span class="text-danger">*</span></label>
+                <select class="form-select" id="delivery_time" name="delivery_time" required>
+                  <option value="">Изберете час...</option>
+                  <option value="09:00-11:00">09:00 - 11:00</option>
+                  <option value="11:00-13:00">11:00 - 13:00</option>
+                  <option value="13:00-15:00">13:00 - 15:00</option>
+                  <option value="15:00-17:00">15:00 - 17:00</option>
+                  <option value="17:00-19:00">17:00 - 19:00</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="notes" class="form-label">Допълнителни бележки</label>
+              <textarea class="form-control" id="notes" name="notes" rows="3"
+                placeholder="Специални указания за доставката или поръчката..."></textarea>
+            </div>
+
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i>
+              <strong>Забележка:</strong> След изпращане на заявката, нашият екип ще се свърже с вас за потвърждение и
+              уточняване на детайлите.
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="{{ url_for('index') }}" class="btn btn-secondary">Отказ</a>
+              <button type="submit" class="btn btn-success">Изпрати заявка</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-body">
+          <h5 class="card-title">Информация за доставка</h5>
+          <ul class="list-unstyled">
+            <li class="mb-2"><strong>🚚 Безплатна доставка</strong> в рамките на София при поръчки над 50 лв.</li>
+            <li class="mb-2"><strong>⏰ Работно време:</strong> Понеделник - Петък: 9:00 - 19:00, Събота: 10:00 - 16:00
+            </li>
+            <li class="mb-2"><strong>📞 Контакт:</strong> +359 888 123 456</li>
+            <li class="mb-2"><strong>✉️ Email:</strong> info@florastil.bg</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Set minimum date to today
+  document.addEventListener('DOMContentLoaded', function () {
+    const dateInput = document.getElementById('delivery_date');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('min', today);
+  });
+</script>
+{% endblock %}
