@@ -1,0 +1,84 @@
+{% extends "admin_base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h1>Админ Категории</h1>
+  
+  <div class="card mb-4">
+    <div class="card-header">Добави нова категория</div>
+    <div class="card-body">
+      <form action="{{ url_for('admin_add_category') }}" method="POST">
+        <div class="mb-3">
+          <label for="name" class="form-label">Име на категория</label>
+          <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+          <label for="slug" class="form-label">Slug (URL идентификатор)</label>
+          <input type="text" class="form-control" id="slug" name="slug" required>
+        </div>
+        <button type="submit" class="btn btn-success">Добави</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Име</th>
+          <th>Slug</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for category in categories %}
+        <tr>
+          <td>{{ category.id }}</td>
+          <td>{{ category.name }}</td>
+          <td>{{ category.slug }}</td>
+          <td>
+            <a href="{{ url_for('admin_edit_category', category_id=category.id) }}" class="btn btn-primary btn-sm">Редактирай</a>
+            <a href="{{ url_for('admin_delete_category', category_id=category.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Сигурни ли сте, че искате да изтриете тази категория?');">Изтрий</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" class="text-center">Няма намерени категории.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <nav aria-label="Categories pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('admin_categories', page=page-1) }}">Предишна</a>
+        </li>
+      {% endif %}
+      
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+          <li class="page-item active">
+            <span class="page-link">{{ p }}</span>
+          </li>
+        {% else %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_categories', page=p) }}">{{ p }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+      
+      {% if has_next %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('admin_categories', page=page+1) }}">Следваща</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

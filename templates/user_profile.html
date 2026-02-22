@@ -4,7 +4,11 @@
   <h1>Профил на {{ user.username }}</h1>
   <form method="post" class="form">
     <div class="mb-3">
-      <label for="realname" class="form-label">Име:</label>
+      <label for="username_display" class="form-label">Потребителско име:</label>
+      <input type="text" value="{{ user.username }}" class="form-control" id="username_display" readonly>
+    </div>
+    <div class="mb-3">
+      <label for="realname" class="form-label">Реално име:</label>
       <input type="text" name="realname" value="{{ user.realname or '' }}" class="form-control" id="realname">
     </div>
     {% if can_edit_role %}

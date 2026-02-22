@@ -1,0 +1,84 @@
+{% extends "admin_base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h1>Админ Услуги</h1>
+  
+  <div class="card mb-4">
+    <div class="card-header">Добави нова услуга</div>
+    <div class="card-body">
+      <form action="{{ url_for('admin_add_service') }}" method="POST">
+        <div class="mb-3">
+          <label for="name" class="form-label">Име на услуга</label>
+          <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+          <label for="slug" class="form-label">Slug (URL идентификатор)</label>
+          <input type="text" class="form-control" id="slug" name="slug" required>
+        </div>
+        <button type="submit" class="btn btn-success">Добави</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Име</th>
+          <th>Slug</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for service in services %}
+        <tr>
+          <td>{{ service.id }}</td>
+          <td>{{ service.name }}</td>
+          <td>{{ service.slug }}</td>
+          <td>
+            <a href="{{ url_for('admin_edit_service', service_id=service.id) }}" class="btn btn-primary btn-sm">Редактирай</a>
+            <a href="{{ url_for('admin_delete_service', service_id=service.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Сигурни ли сте, че искате да изтриете тази услуга?');">Изтрий</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" class="text-center">Няма намерени услуги.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <nav aria-label="Services pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('admin_services', page=page-1) }}">Предишна</a>
+        </li>
+      {% endif %}
+      
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+          <li class="page-item active">
+            <span class="page-link">{{ p }}</span>
+          </li>
+        {% else %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_services', page=p) }}">{{ p }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+      
+      {% if has_next %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('admin_services', page=page+1) }}">Следваща</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

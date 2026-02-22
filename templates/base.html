@@ -30,10 +30,11 @@
               Каталог
             </a>
             <ul class="dropdown-menu" aria-labelledby="catalogDropdown">
-              <li><a class="dropdown-item" href="{{ url_for('index') }}?category=seeds">Семена</a></li>
-              <li><a class="dropdown-item" href="{{ url_for('index') }}?category=indoor">Стайни растения</a></li>
-              <li><a class="dropdown-item" href="{{ url_for('index') }}?category=outdoor">Дворни цветя</a></li>
-              <li><a class="dropdown-item" href="{{ url_for('index') }}?category=pharmacy">Агроаптека</a></li>
+              {% for category in categories %}
+              <li><a class="dropdown-item" href="{{ url_for('index') }}?category={{ category.slug }}">{{ category.name }}</a></li>
+              {% else %}
+              <li><a class="dropdown-item" href="#">Няма категории</a></li>
+              {% endfor %}
             </ul>
           </li>
           <li class="nav-item dropdown">
@@ -42,8 +43,11 @@
               Услуги
             </a>
             <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
-              <li><a class="dropdown-item" href="{{ url_for('index') }}?service=bouquets">Букети</a></li>
-              <li><a class="dropdown-item" href="{{ url_for('index') }}?service=events">Аранжимент на събития</a></li>
+              {% for service in services %}
+              <li><a class="dropdown-item" href="{{ url_for('index') }}?service={{ service.slug }}">{{ service.name }}</a></li>
+              {% else %}
+              <li><a class="dropdown-item" href="#">Няма услуги</a></li>
+              {% endfor %}
             </ul>
           </li>
           {% if session.username %}
@@ -67,7 +71,7 @@
             <a class="nav-link text-white" href="{{ url_for('cart') }}">Количка</a>
           </li>
 
-          {% if session.role == 'admin' %}
+          {% if is_admin %}
           <li class="nav-item">
             <a class="nav-link text-white" href="{{ url_for('admin_panel') }}">Админ Панел</a>
           </li>

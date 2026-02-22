@@ -16,16 +16,16 @@
       {% for item in items %}
       <tr>
         <td>{{ item.name }}</td>
-        <td>{{ item.price }} лв.</td>
+        <td>{{ item.price }} €</td>
         <td>{{ item.quantity }}</td>
-        <td>{{ item.subtotal }} лв.</td>
+        <td>{{ item.subtotal }} €</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 <div class="d-flex justify-content-between align-items-center">
-  <h4 class="text-success">Крайна сума: {{ total }} лв.</h4>
+  <h4 class="text-success">Крайна сума: {{ total }} €</h4>
   <a href="{{ url_for('checkout') }}" class="btn btn-success btn-lg">✅ Завърши поръчката</a>
 </div>
 {% else %}

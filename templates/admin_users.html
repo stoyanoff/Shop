@@ -2,6 +2,47 @@
 {% block content %}
 <div class="container mt-4">
   <h1>Админ Потребители</h1>
+  
+  <div class="card mb-4">
+    <div class="card-header">Добави нов потребител</div>
+    <div class="card-body">
+      <form action="{{ url_for('admin_add_user') }}" method="POST">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="username" class="form-label">Потребителско име</label>
+              <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="password" class="form-label">Парола</label>
+              <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="realname" class="form-label">Реalno име</label>
+              <input type="text" class="form-control" id="realname" name="realname">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="role" class="form-label">Роля</label>
+              <select class="form-control" id="role" name="role">
+                <option value="customer">Customer</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-success">Добави</button>
+      </form>
+    </div>
+  </div>
+
   <div class="table-responsive">
     <table class="table table-striped">
       <thead>
@@ -21,12 +62,17 @@
           <td>{{ user.realname or '' }}</td>
           <td>{{ user.role or 'customer' }}</td>
           <td>
-            <a href="{{ url_for('user_profile', user_id=user.id) }}" class="btn btn-primary btn-sm">Редактирай
-              профил</a>
+            <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" class="btn btn-primary btn-sm">Редактирай</a>
+            <a href="{{ url_for('admin_delete_user', user_id=user.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Сигурни ли сте, че искате да изтриете този потребител?');">Изтрий</a>
           </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="text-center">Няма намерени потребители.</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-  {% endblock %}
+</div>
+{% endblock %}
