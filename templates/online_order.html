@@ -9,6 +9,14 @@
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">Заявка за доставка</h5>
+          {% if 'user_id' not in session %}
+          <div class="alert alert-warning">
+            <h5>Вие трябва да сте регистриран и логнат потребител, за да имате достъп до тази услуга!</h5>
+            <p>Моля, <a href="{{ url_for('login') }}" class="alert-link">влезте в профила си</a> или <a
+                href="{{ url_for('register') }}" class="alert-link">се регистрирайте</a>, за да направите онлайн
+              поръчка.</p>
+          </div>
+          {% else %}
           <p class="card-text text-muted">
             Моля, попълнете формата по-долу и ние ще се свържем с вас за потвърждение на поръчката.
           </p>
@@ -70,6 +78,7 @@
               <button type="submit" class="btn btn-success">Изпрати заявка</button>
             </div>
           </form>
+          {% endif %}
         </div>
       </div>
 

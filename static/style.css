@@ -7,6 +7,22 @@ body {
   font-weight: bold;
 }
 
+.logo-header {
+  background-color: #ffffff;
+  border-bottom: 2px solid #28a745;
+}
+
+.main-logo {
+  height: 80px;
+  width: auto;
+  max-width: 300px;
+  transition: transform 0.3s ease;
+}
+
+.main-logo:hover {
+  transform: scale(1.05);
+}
+
 .card {
   transition: transform 0.2s;
 }

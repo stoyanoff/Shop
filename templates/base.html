@@ -11,6 +11,15 @@
 </head>
 
 <body>
+  <!-- Logo Header Section -->
+  <header class="logo-header">
+    <div class="container text-center py-3">
+      <a href="/">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ФлораСтил" class="main-logo">
+      </a>
+    </div>
+  </header>
+
   {% block nav %}
   <nav class="navbar navbar-expand-lg navbar-light bg-success">
     <div class="container-fluid">
@@ -31,7 +40,8 @@
             </a>
             <ul class="dropdown-menu" aria-labelledby="catalogDropdown">
               {% for category in categories %}
-              <li><a class="dropdown-item" href="{{ url_for('index') }}?category={{ category.slug }}">{{ category.name }}</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('index') }}?category={{ category.slug }}">{{ category.name
+                  }}</a></li>
               {% else %}
               <li><a class="dropdown-item" href="#">Няма категории</a></li>
               {% endfor %}
@@ -44,7 +54,8 @@
             </a>
             <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
               {% for service in services %}
-              <li><a class="dropdown-item" href="{{ url_for('index') }}?service={{ service.slug }}">{{ service.name }}</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('index') }}?service={{ service.slug }}">{{ service.name
+                  }}</a></li>
               {% else %}
               <li><a class="dropdown-item" href="#">Няма услуги</a></li>
               {% endfor %}

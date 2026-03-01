@@ -18,7 +18,7 @@ def get_db():
 
 @app.teardown_appcontext
 def close_db(error):
-    db = g.pop('db', None)
+??    db = g.pop('db', None)
     if db is not None:
         db.close()
 
@@ -55,13 +55,68 @@ def inject_global_data():
         pass
     return {"is_admin": is_admin, "categories": categories, "services": services}
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
     category_slug = request.args.get('category')
     service_slug = request.args.get('service')
+
+    # Handle custom bouquet service
+    if service_slug == 'custombouquet':
+        if request.method == "POST":
+            if 'user_id' not in session:
+                flash("Вие трябва да сте регистриран и логнат потребител, за да имате достъп до тази услуга!")
+                return redirect(url_for('login'))
+
+            # Process custom bouquet form
+            flower_types = request.form.get('flower_types', '')
+            try:
+                flower_count = int(request.form.get('flower_count', 0))
+            except (ValueError, TypeError):
+                flower_count = 0
+            bouquet_color = request.form.get('bouquet_color', '')
+            has_card = 'has_card' in request.form
+            card_text = request.form.get('card_text', '') if has_card else None
+
+            # Validation
+            if not flower_types or len(flower_types) > 254:
+                flash("Моля въведете валидни видове цветя (до 254 символа).")
+                return render_template("custom_bouquet.html")
+
+            if flower_count <= 0 or flower_count > 99:
+                flash("Броят цветя трябва да е между 1 и 99.")
+                return render_template("custom_bouquet.html")
+
+            if not bouquet_color or len(bouquet_color) > 254:
+                flash("Моля въведете валиден цвят на букета (до 254 символа).")
+                return render_template("custom_bouquet.html")
+
+            if has_card and card_text and len(card_text) > 1024:
+                flash("Текстът на картичката не трябва да надвишава 1024 символа.")
+                return render_template("custom_bouquet.html")
+
+            # Save to database
+            db = get_db()
+            cursor = db.cursor()
+            try:
+                cursor.execute("""
+                    INSERT INTO custom_bouquet_orders
+                    (user_id, flower_types, flower_count, bouquet_color, has_card, card_text)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (session['user_id'], flower_types, flower_count, bouquet_color, has_card, card_text))
+                db.commit()
+                flash("Вашата поръчка за букет по желание е получена! Ще се свържем с Вас скоро.")
+                return redirect(url_for('index'))
+            except mysql.connector.Error as err:
+                db.rollback()
+                flash(f"Възникна грешка при запазването: {err}")
+                return render_template("custom_bouquet.html")
+
+        # Show custom bouquet form for GET request
+        return render_template("custom_bouquet.html")
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+
     if category_slug:
         cursor.execute("""
             SELECT p.* FROM products p
@@ -76,7 +131,7 @@ def index():
         """, (service_slug,))
     else:
         cursor.execute("SELECT * FROM products")
-        
+
     products = cursor.fetchall()
     return render_template("index.html", products=products)
 
@@ -219,9 +274,12 @@ def contact():
     return render_template("contact.html")
 
 @app.route("/online_order", methods=["GET", "POST"])
-@login_required
 def online_order():
     if request.method == "POST":
+        if 'user_id' not in session:
+            flash("Вие трябва да сте регистриран и логнат потребител, за да имате достъп до тази услуга!")
+            return redirect(url_for('login'))
+
         delivery_date = request.form["delivery_date"]
         delivery_time = request.form["delivery_time"]
         delivery_address = request.form["delivery_address"]
@@ -242,15 +300,15 @@ def process_image(image_file, max_size=(1024, 768)):
     """Process and resize image if needed"""
     try:
         img = Image.open(image_file)
-        
+
         # Convert to RGB if necessary (for PNG with transparency)
         if img.mode in ('RGBA', 'LA', 'P'):
             img = img.convert('RGB')
-        
+
         # Resize if larger than max_size
         if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
             img.thumbnail(max_size, Image.Resampling.LANCZOS)
-        
+
         return img
     except Exception as e:
         return None
@@ -267,20 +325,20 @@ def admin_add_product():
         service_id = request.form.get("service_id") or None
         image_url = request.form.get("image_url", "")
         image_file = request.files.get("image_file")
-        
+
         image_path = None
-        
+
         # Handle image upload
         if image_file and image_file.filename and allowed_file(image_file.filename):
             # Create uploads directory if it doesn't exist
             upload_dir = os.path.join(app.static_folder, 'images', 'products')
             os.makedirs(upload_dir, exist_ok=True)
-            
+
             # Generate unique filename
             file_extension = image_file.filename.rsplit('.', 1)[1].lower()
             filename = f"{uuid.uuid4()}.{file_extension}"
             filepath = os.path.join(upload_dir, filename)
-            
+
             # Process and save image
             processed_img = process_image(image_file)
             if processed_img:
@@ -289,7 +347,7 @@ def admin_add_product():
             else:
                 flash("Грешка при обработката на изображението.")
                 return redirect(url_for("admin_add_product"))
-        
+
         elif image_url:
             # Use the provided URL
             image_path = image_url
@@ -321,14 +379,14 @@ def admin_products():
     page = request.args.get('page', 1, type=int)
     per_page = 10
     offset = (page - 1) * per_page
-    
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+
     # Get total count
     cursor.execute("SELECT COUNT(*) as total FROM products")
     total = cursor.fetchone()['total']
-    
+
     # Get paginated results with category and service names
     cursor.execute("""
         SELECT p.*, c.name as category_name, s.name as service_name
@@ -338,13 +396,13 @@ def admin_products():
         LIMIT %s OFFSET %s
     """, (per_page, offset))
     products = cursor.fetchall()
-    
+
     # Calculate pagination info
     total_pages = (total + per_page - 1) // per_page
     has_prev = page > 1
     has_next = page < total_pages
-    
-    return render_template("admin_products.html", 
+
+    return render_template("admin_products.html",
                          products=products,
                          page=page,
                          total_pages=total_pages,
@@ -357,24 +415,24 @@ def admin_categories():
     page = request.args.get('page', 1, type=int)
     per_page = 10
     offset = (page - 1) * per_page
-    
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+
     # Get total count
     cursor.execute("SELECT COUNT(*) as total FROM categories")
     total = cursor.fetchone()['total']
-    
+
     # Get paginated results
     cursor.execute("SELECT * FROM categories LIMIT %s OFFSET %s", (per_page, offset))
     categories = cursor.fetchall()
-    
+
     # Calculate pagination info
     total_pages = (total + per_page - 1) // per_page
     has_prev = page > 1
     has_next = page < total_pages
-    
-    return render_template("admin_categories.html", 
+
+    return render_template("admin_categories.html",
                          categories=categories,
                          page=page,
                          total_pages=total_pages,
@@ -402,7 +460,7 @@ def admin_add_category():
 def admin_edit_category(category_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+
     if request.method == "POST":
         name = request.form["name"]
         slug = request.form["slug"]
@@ -414,13 +472,13 @@ def admin_edit_category(category_id):
         except mysql.connector.Error as err:
             db.rollback()
             flash(f"Error updating category: {err}")
-    
+
     cursor.execute("SELECT * FROM categories WHERE id=%s", (category_id,))
     category = cursor.fetchone()
     if not category:
         flash("Category not found.")
         return redirect(url_for("admin_categories"))
-    
+
     return render_template("admin_edit_category.html", category=category)
 
 @app.route("/admin/categories/delete/<int:category_id>", endpoint='admin_delete_category')
@@ -443,24 +501,24 @@ def admin_services():
     page = request.args.get('page', 1, type=int)
     per_page = 10
     offset = (page - 1) * per_page
-    
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+
     # Get total count
     cursor.execute("SELECT COUNT(*) as total FROM services")
     total = cursor.fetchone()['total']
-    
+
     # Get paginated results
     cursor.execute("SELECT * FROM services LIMIT %s OFFSET %s", (per_page, offset))
     services = cursor.fetchall()
-    
+
     # Calculate pagination info
     total_pages = (total + per_page - 1) // per_page
     has_prev = page > 1
     has_next = page < total_pages
-    
-    return render_template("admin_services.html", 
+
+    return render_template("admin_services.html",
                          services=services,
                          page=page,
                          total_pages=total_pages,
@@ -488,7 +546,7 @@ def admin_add_service():
 def admin_edit_service(service_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+
     if request.method == "POST":
         name = request.form["name"]
         slug = request.form["slug"]
@@ -500,13 +558,13 @@ def admin_edit_service(service_id):
         except mysql.connector.Error as err:
             db.rollback()
             flash(f"Error updating service: {err}")
-    
+
     cursor.execute("SELECT * FROM services WHERE id=%s", (service_id,))
     service = cursor.fetchone()
     if not service:
         flash("Service not found.")
         return redirect(url_for("admin_services"))
-    
+
     return render_template("admin_edit_service.html", service=service)
 
 @app.route("/admin/services/delete/<int:service_id>", endpoint='admin_delete_service')
@@ -529,8 +587,8 @@ def admin_orders():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
-        SELECT o.id, o.created_at, o.status, u.username 
-        FROM orders o 
+        SELECT o.id, o.created_at, o.status, u.username
+        FROM orders o
         LEFT JOIN users u ON o.user_id = u.id
         ORDER BY o.created_at DESC
     """)
@@ -543,9 +601,9 @@ def admin_order_detail(order_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
-        SELECT oi.quantity, oi.price, p.name 
-        FROM order_items oi 
-        JOIN products p ON oi.product_id = p.id 
+        SELECT oi.quantity, oi.price, p.name
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.id
         WHERE oi.order_id = %s
     """, (order_id,))
     items = cursor.fetchall()
@@ -574,9 +632,9 @@ def admin_add_user():
     password = request.form["password"]
     realname = request.form.get("realname", "")
     role = request.form.get("role", "customer")
-    
+
     password_hash = generate_password_hash(password)
-    
+
     db = get_db()
     cursor = db.cursor()
     try:
@@ -596,7 +654,7 @@ def admin_add_user():
 def admin_edit_user(user_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+
     if request.method == "POST":
         username = request.form["username"]
         realname = request.form.get("realname", "")
@@ -609,13 +667,13 @@ def admin_edit_user(user_id):
         except mysql.connector.Error as err:
             db.rollback()
             flash(f"Error updating user: {err}")
-    
+
     cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
     user = cursor.fetchone()
     if not user:
         flash("User not found.")
         return redirect(url_for("admin_users"))
-    
+
     return render_template("admin_edit_user.html", user=user)
 
 @app.route("/admin/users/delete/<int:user_id>", endpoint='admin_delete_user')
@@ -625,7 +683,7 @@ def admin_delete_user(user_id):
     if user_id == session.get("user_id"):
         flash("You cannot delete your own account.")
         return redirect(url_for("admin_users"))
-    
+
     db = get_db()
     cursor = db.cursor()
     try:
@@ -773,7 +831,7 @@ def set_default_address(user_id, address_id):
 def admin_edit_product(product_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+
     if request.method == "POST":
         name = request.form["name"]
         desc = request.form["description"]
@@ -783,19 +841,19 @@ def admin_edit_product(product_id):
         service_id = request.form.get("service_id") or None
         image_url = request.form.get("image_url", "")
         image_file = request.files.get("image_file")
-        
+
         image_path = None
         current_image = request.form.get("current_image", "")
-        
+
         # Handle image upload
         if image_file and image_file.filename and allowed_file(image_file.filename):
             upload_dir = os.path.join(app.static_folder, 'images', 'products')
             os.makedirs(upload_dir, exist_ok=True)
-            
+
             file_extension = image_file.filename.rsplit('.', 1)[1].lower()
             filename = f"{uuid.uuid4()}.{file_extension}"
             filepath = os.path.join(upload_dir, filename)
-            
+
             processed_img = process_image(image_file)
             if processed_img:
                 processed_img.save(filepath, quality=85, optimize=True)
@@ -807,7 +865,7 @@ def admin_edit_product(product_id):
             image_path = image_url
         else:
             image_path = current_image
-        
+
         try:
             cursor.execute(
                 "UPDATE products SET name=%s, description=%s, price=%s, stock=%s, category_id=%s, service_id=%s, image=%s WHERE id=%s",
@@ -819,13 +877,13 @@ def admin_edit_product(product_id):
         except mysql.connector.Error as err:
             db.rollback()
             flash(f"Error updating product: {err}")
-    
+
     cursor.execute("SELECT * FROM products WHERE id=%s", (product_id,))
     product = cursor.fetchone()
     if not product:
         flash("Product not found.")
         return redirect(url_for("admin_products"))
-    
+
     return render_template("admin_edit_product.html", product=product)
 
 @app.route("/admin/products/delete/<int:product_id>", endpoint='admin_delete_product')

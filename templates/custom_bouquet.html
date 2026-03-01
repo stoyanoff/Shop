@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header bg-success text-white">
+        <h4 class="mb-0">Букет по поръчка</h4>
+      </div>
+      <div class="card-body">
+        {% if 'user_id' not in session %}
+        <div class="alert alert-warning">
+          <h5>Вие трябва да сте регистриран и логнат потребител, за да имате достъп до тази услуга!</h5>
+          <p>Моля, <a href="{{ url_for('login') }}" class="alert-link">влезте в профила си</a> или <a
+              href="{{ url_for('register') }}" class="alert-link">се регистрирайте</a>, за да поръчате букет по желание.
+          </p>
+        </div>
+        {% else %}
+        <p class="text-muted">Създайте своя уникален букет! Попълнете формата по-долу и ние ще се свържем с Вас за
+          потвърждение на поръчката.</p>
+
+        <form method="POST">
+          <div class="mb-3">
+            <label for="flower_types" class="form-label">Изберете видове цветя <span
+                class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="flower_types" name="flower_types" maxlength="254" required
+              placeholder="Напр.: рози, лалета, хризантеми">
+            <div class="form-text">Опишете желаните видове цветя (максимум 254 символа)</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="flower_count" class="form-label">Брой цветя <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="flower_count" name="flower_count" min="1" max="99" required
+              placeholder="Въведете брой цветя">
+            <div class="form-text">Въведете желания брой цветя (максимум 99)</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="bouquet_color" class="form-label">Цвят на букета и опаковката <span
+                class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="bouquet_color" name="bouquet_color" maxlength="254" required
+              placeholder="Напр.: бяло и розово, червено и златисто">
+            <div class="form-text">Опишете желаните цветове (максимум 254 символа)</div>
+          </div>
+
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="has_card" name="has_card" onchange="toggleCardText()">
+              <label class="form-check-label" for="has_card">
+                Картичка
+              </label>
+              <div class="form-text">Отметнете, ако желаете картичка с послание</div>
+            </div>
+          </div>
+
+          <div class="mb-3" id="card_text_container" style="display: none;">
+            <label for="card_text" class="form-label">Текст на картичката</label>
+            <textarea class="form-control" id="card_text" name="card_text" rows="3" maxlength="1024"
+              placeholder="Въведете желания текст за картичката..."></textarea>
+            <div class="form-text">Максимум 1024 символа</div>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-success btn-lg">Изпрати поръчка</button>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Назад към началото</a>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleCardText() {
+    const checkbox = document.getElementById('has_card');
+    const container = document.getElementById('card_text_container');
+    const textarea = document.getElementById('card_text');
+
+    if (checkbox.checked) {
+      container.style.display = 'block';
+      textarea.required = false; // Make it optional even when visible
+    } else {
+      container.style.display = 'none';
+      textarea.value = ''; // Clear the text when hidden
+      textarea.required = false;
+    }
+  }
+</script>
+{% endblock %}
