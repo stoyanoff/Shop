@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A Flask-based flower shop web application (university diploma project). Bulgarian-language storefront with product catalogue, cart, checkout, user auth, and an admin panel. Backend is MariaDB/MySQL; no ORM — all queries are raw SQL.
+A Flask-based flower shop web application (university diploma project — ФлораСтил). Bulgarian-language storefront with product catalogue, cart, checkout, user auth, admin panel, and custom bouquet orders. Backend is MariaDB/MySQL; no ORM — all queries are raw SQL.
 
 ## Running the App
 
@@ -14,12 +14,9 @@ uv sync
 
 # Run development server
 uv run flask run
-
-# Or directly
-uv run python app.py
 ```
 
-Requires Python 3.13 (see `.python-version`). The database runs on a separate MariaDB server; connection details live in `config.py` (gitignored — create it locally, see structure below).
+Requires Python 3.13 (see `.python-version`). The database runs on a separate MariaDB server (`ssh dbmy`, 192.168.1.112); connection details live in `config.py` (gitignored).
 
 ## config.py (gitignored — must be created locally)
 
@@ -27,7 +24,7 @@ Requires Python 3.13 (see `.python-version`). The database runs on a separate Ma
 DB_CONFIG = {
     "host": "192.168.1.112",
     "user": "shop",
-    "password": "...",
+    "password": "1234",
     "database": "shop"
 }
 SECRET_KEY = "dev"
@@ -35,49 +32,50 @@ SECRET_KEY = "dev"
 
 ## Database Setup
 
-Import the full schema and seed data:
 ```bash
 mysql -u shop -p shop < mysql.sql
 ```
 
-The `custom_bouquet_table.sql` contains the `custom_bouquet_orders` table definition (also included in `mysql.sql`).
+`mysql.sql` includes all tables, seed data, the `payments` table, and the `SetDefaultDeliveryAddress` stored procedure.
 
-**Important:** The stored procedure `SetDefaultDeliveryAddress(user_id, address_id)` is called in `app.py` but is **not** included in `mysql.sql`. It must be created manually before delivery address management will work.
+**Admin login:** `admin` / `1234`
 
 ## Architecture
 
-Everything lives in one file: **`app.py`** (~900 lines). There are no blueprints or separate modules.
+Everything lives in one file: **`app.py`** (~950 lines). There are no blueprints or separate modules.
 
 ### Database Access Pattern
-A new DB connection is created per request via Flask's `g` object:
+Per-request DB connection via Flask's `g` object:
 ```python
-def get_db():           # opens mysql.connector connection on first call
-@app.teardown_appcontext  # closes it at end of request
+def get_db():              # opens mysql.connector connection on first call
+@app.teardown_appcontext   # closes it at end of request
 ```
 
 ### Auth
 - Session-based (`flask.session`) storing `user_id`, `username`, `role`
-- Two decorators gate access: `@login_required` and `@admin_required`
+- `@login_required` and `@admin_required` decorators gate access
 - Roles: `customer` (default) or `admin`
 
 ### Template Context
-`inject_global_data()` context processor runs on every request and injects `categories`, `services`, and `is_admin` into all templates — used by the navbar.
+`inject_global_data()` context processor injects `categories`, `services`, and `is_admin` into all templates on every request — used by the navbar.
 
 ### Product Filtering (index route)
-The `GET /` route accepts query params:
-- `?category=<slug>` — filter by category slug
-- `?service=<slug>` — filter by service slug
-- `?service=custombouquet` — special: renders the custom bouquet order form instead of product list
+`GET /` accepts:
+- `?category=<slug>` — filter by category
+- `?service=<slug>` — filter by service
+- `?service=custombouquet` — renders custom bouquet order form instead of product list
+
+### User Profile
+`/my-profile` — logged-in users see their order history (orders + items + totals). Uses `orders` and `order_items` tables.
 
 ### Image Handling
-Product images can be:
-1. **Uploaded file** — processed with Pillow (resized to 1024×768 max, quality 85), saved to `static/images/products/<uuid>.<ext>`
+1. **Uploaded file** — processed with Pillow (max 1024×768, quality 85), saved to `static/images/products/<uuid>.<ext>`
 2. **External URL** — stored as-is in the `image` column
 
 ### Admin Panel
-All admin routes are under `/admin/` and require `@admin_required`. CRUD operations for: products, categories, services, users, orders. User profile view also handles delivery addresses (add/edit/set default).
+All routes under `/admin/` require `@admin_required`. CRUD for: products, categories, services, users, orders. Delivery addresses use stored procedure `SetDefaultDeliveryAddress(user_id, address_id)`.
 
-## Database Schema (key tables)
+## Database Schema
 
 | Table | Purpose |
 |---|---|
@@ -88,15 +86,24 @@ All admin routes are under `/admin/` and require `@admin_required`. CRUD operati
 | `orders` | id, user_id, created_at, status |
 | `order_items` | id, order_id, product_id, quantity, price |
 | `delivery` | id, user_id, address fields, is_default |
+| `payments` | id, order_id, amount, method, status, created_at |
 | `custom_bouquet_orders` | id, user_id, flower_types, flower_count, bouquet_color, has_card, card_text, status |
+
+**Stored procedure:** `SetDefaultDeliveryAddress(user_id, address_id)` — clears all default addresses for user then sets the specified one.
 
 ## Cart
 
-Stored entirely in the Flask session as `session["cart"]` — a `{product_id: quantity}` dict. Checkout creates an `orders` row and `order_items` rows, then clears the cart.
+`session["cart"]` — `{product_id: quantity}` dict. Checkout creates `orders` + `order_items` rows then clears it.
+
+## Docs/
+
+- `FlораСтил_Презентация.pptx` — 16-slide defense presentation (includes real screenshots)
+- `Answers.docx` — 5 potential defense questions, full + short answers
+- `Отговори_на_въпроси.md` — same in markdown
+- `screenshots/` — Playwright screenshots of all key pages
 
 ## Linting
 
-Ruff is configured (`.ruff_cache/` present):
 ```bash
 uv run ruff check app.py
 uv run ruff format app.py
