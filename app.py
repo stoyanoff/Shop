@@ -256,6 +256,40 @@ def logout():
     flash("You have been logged out.")
     return redirect(url_for("index"))
 
+@app.route("/my-profile")
+@login_required
+def my_profile():
+    user_id = session.get("user_id")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT id, username, realname FROM users WHERE id=%s", (user_id,))
+    user = cursor.fetchone()
+
+    # Order history with totals
+    cursor.execute("""
+        SELECT o.id, o.created_at, o.status,
+               SUM(oi.quantity * oi.price) as total
+        FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
+        WHERE o.user_id = %s
+        GROUP BY o.id, o.created_at, o.status
+        ORDER BY o.created_at DESC
+    """, (user_id,))
+    orders = cursor.fetchall()
+
+    # Items per order
+    for order in orders:
+        cursor.execute("""
+            SELECT p.name, oi.quantity, oi.price
+            FROM order_items oi
+            JOIN products p ON oi.product_id = p.id
+            WHERE oi.order_id = %s
+        """, (order["id"],))
+        order["items"] = cursor.fetchall()
+
+    return render_template("my_profile.html", user=user, orders=orders)
+
 @app.route("/about")
 def about():
     return render_template("about.html")

@@ -19,7 +19,7 @@
 --
 -- Table structure for table `categories`
 --
-USE 'shop';
+USE `shop`;
 
 --
 -- Table structure for table `custom_bouquet_orders`
@@ -261,5 +261,35 @@ UNLOCK TABLES;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+--
+-- Table structure for table `payments`
+--
+
+DROP TABLE IF EXISTS `payments`;
+CREATE TABLE `payments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `method` enum('cash','card','online') DEFAULT 'cash',
+  `status` enum('pending','accepted','rejected') DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`),
+  CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Stored procedure: SetDefaultDeliveryAddress
+--
+
+DROP PROCEDURE IF EXISTS `SetDefaultDeliveryAddress`;
+DELIMITER //
+CREATE PROCEDURE `SetDefaultDeliveryAddress`(IN p_user_id INT, IN p_address_id INT)
+BEGIN
+    UPDATE delivery SET is_default = 0 WHERE user_id = p_user_id;
+    UPDATE delivery SET is_default = 1 WHERE id = p_address_id AND user_id = p_user_id;
+END //
+DELIMITER ;
 
 -- Dump completed on 2026-03-01 10:46:30

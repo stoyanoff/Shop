@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Моят профил</h2>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <p><strong>Потребителско име:</strong> {{ user.username }}</p>
+      <p><strong>Реално име:</strong> {{ user.realname or '—' }}</p>
+    </div>
+  </div>
+
+  <h4>История на поръчките</h4>
+  {% if orders %}
+  {% for order in orders %}
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Поръчка #{{ order.id }} — {{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+      <span class="badge
+        {% if order.status == 'completed' %}bg-success
+        {% elif order.status == 'canceled' %}bg-danger
+        {% else %}bg-warning text-dark{% endif %}">
+        {{ order.status }}
+      </span>
+    </div>
+    <div class="card-body">
+      <ul class="list-unstyled mb-2">
+        {% for item in order.items %}
+        <li>{{ item.name }} × {{ item.quantity }} — {{ "%.2f"|format(item.price) }} лв.</li>
+        {% endfor %}
+      </ul>
+      <p class="mb-0"><strong>Общо: {{ "%.2f"|format(order.total) }} лв.</strong></p>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p class="text-muted">Все още нямате направени поръчки.</p>
+  {% endif %}
+</div>
+{% endblock %}
